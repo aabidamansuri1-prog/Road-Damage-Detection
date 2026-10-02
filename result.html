@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Result #{{ d.id }}{% endblock %}
+{% block content %}
+<a class="back" href="{{ url_for('index') }}">&larr; Analyze another image</a>
+<h1>Analysis result <small>#{{ d.id }}</small></h1>
+
+<div class="result-grid">
+  <div class="card imgs">
+    <div class="pair">
+      <figure><img src="{{ url_for('static', filename='uploads/' + d.original_image) }}" alt="original"><figcaption>Original</figcaption></figure>
+      <figure><img src="{{ url_for('static', filename='results/' + d.result_image) }}" alt="detected"><figcaption>Detected damage</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="card info">
+    <div class="verdict {{ d.severity }}">
+      <small>Overall severity</small>
+      <strong>{{ d.severity }}</strong>
+    </div>
+    <table class="kv">
+      <tr><th>Damage type</th><td>{{ d.damage_type }}</td></tr>
+      <tr><th>Potholes found</th><td>{{ d.pothole_count }}</td></tr>
+      <tr><th>Cracks found</th><td>{{ d.crack_count }}</td></tr>
+      <tr><th>Damaged road area</th><td>{{ d.damage_percent }} %</td></tr>
+      <tr><th>Location</th><td>{{ d.location or '—' }}</td></tr>
+      <tr><th>Detector</th><td>{{ d.method }}</td></tr>
+      <tr><th>Saved at</th><td>{{ d.created_at }}</td></tr>
+    </table>
+    <p class="advice">
+      {% if d.severity == 'High' %}⚠️ <b>Urgent repair recommended.</b> Large or multiple damaged areas detected.
+      {% elif d.severity == 'Medium' %}🛠️ <b>Schedule repair soon.</b> Visible damage that will worsen with traffic and rain.
+      {% elif d.severity == 'Low' %}👀 <b>Monitor.</b> Minor damage – include in routine maintenance.
+      {% else %}✅ <b>No significant damage detected.</b>{% endif %}
+    </p>
+    <a class="btn" href="{{ url_for('dashboard') }}">View dashboard</a>
+  </div>
+</div>
+{% endblock %}

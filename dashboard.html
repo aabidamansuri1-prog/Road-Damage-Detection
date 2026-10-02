@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+
+<div class="stats">
+  <div class="card stat"><span>Images analysed</span><b>{{ stats.total }}</b></div>
+  <div class="card stat"><span>Potholes found</span><b>{{ stats.potholes }}</b></div>
+  <div class="card stat"><span>Cracks found</span><b>{{ stats.cracks }}</b></div>
+  <div class="card stat"><span>Avg. damaged area</span><b>{{ stats.avg_damage }}%</b></div>
+</div>
+
+<div class="card">
+  <h3>Severity distribution</h3>
+  {% set mx = [stats.severity.High, stats.severity.Medium, stats.severity.Low, stats.severity['None'], 1]|max %}
+  {% for s in ['High','Medium','Low','None'] %}
+  <div class="bar-row">
+    <span class="bar-label">{{ s }}</span>
+    <div class="bar-track"><div class="bar {{ s }}" style="width: {{ (stats.severity[s] / mx * 100)|round(1) }}%"></div></div>
+    <span class="bar-val">{{ stats.severity[s] }}</span>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="toolbar">
+  <h2 class="section">Detection records</h2>
+  <div class="filters">
+    <a href="{{ url_for('dashboard') }}" class="chip {{ 'on' if not selected }}">All</a>
+    {% for s in ['High','Medium','Low','None'] %}
+    <a href="{{ url_for('dashboard', severity=s) }}" class="chip {{ 'on' if selected == s }}">{{ s }}</a>
+    {% endfor %}
+    <a class="chip dl" href="{{ url_for('export_csv') }}">⬇ Export CSV</a>
+  </div>
+</div>
+
+{% if rows %}
+<div class="card tablewrap">
+<table class="records">
+  <thead><tr><th>#</th><th>Image</th><th>Date</th><th>Location</th><th>Type</th><th>Potholes</th><th>Cracks</th><th>Damage %</th><th>Severity</th><th></th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr>
+      <td>{{ r.id }}</td>
+      <td><a href="{{ url_for('result', det_id=r.id) }}"><img class="thumb" src="{{ url_for('static', filename='results/' + r.result_image) }}" alt=""></a></td>
+      <td>{{ r.created_at }}</td>
+      <td>{{ r.location or '—' }}</td>
+      <td>{{ r.damage_type }}</td>
+      <td>{{ r.pothole_count }}</td>
+      <td>{{ r.crack_count }}</td>
+      <td>{{ r.damage_percent }}</td>
+      <td><span class="tag {{ r.severity }}">{{ r.severity }}</span></td>
+      <td>
+        <form method="post" action="{{ url_for('delete', det_id=r.id) }}" onsubmit="return confirm('Delete this record?')">
+          <button class="del" title="Delete">🗑</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<div class="card empty">No records yet. <a href="{{ url_for('index') }}">Analyze your first road image →</a></div>
+{% endif %}
+{% endblock %}
