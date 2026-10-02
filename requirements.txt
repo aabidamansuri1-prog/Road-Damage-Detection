@@ -1,0 +1,6 @@
+flask>=3.0
+opencv-python>=4.8
+numpy>=1.24
+pymysql>=1.1
+# Optional (only if you want to use a trained YOLO model, see README):
+# ultralytics
