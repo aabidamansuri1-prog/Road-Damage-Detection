@@ -1,1 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <h1>Detect potholes &amp; cracks from a road photo</h1>
+  <p>Upload an image. The system finds the damage, rates its severity as <b class="tag Low">Low</b>
+     <b class="tag Medium">Medium</b> or <b class="tag High">High</b>, and saves the report.</p>
+</section>
 
+<form class="card upload" action="{{ url_for('analyze') }}" method="post" enctype="multipart/form-data" id="uploadForm">
+  <label class="drop" id="drop">
+    <input type="file" name="image" id="image" accept="image/*" required hidden>
+    <div id="dropText">
+      <div class="big">📷</div>
+      <b>Click to choose a road image</b> or drag &amp; drop here<br>
+      <small>JPG / PNG / WEBP, up to 10 MB</small>
+    </div>
+    <img id="preview" alt="preview" hidden>
+  </label>
+
+  <div class="fields">
+    <label>Location / road name (optional)
+      <input type="text" name="location" maxlength="200" placeholder="e.g. Pimpri-Chinchwad, Pune-Mumbai Road">
+    </label>
+    <label class="check">
+      <input type="checkbox" name="has_sky"> Photo includes sky / horizon (ignore the top part)
+    </label>
+    <button type="submit" class="btn" id="submitBtn">Analyze Road Damage</button>
+  </div>
+</form>
+
+{% if recent %}
+<h2 class="section">Recent analyses</h2>
+<div class="grid">
+  {% for r in recent %}
+  <a class="mini card" href="{{ url_for('result', det_id=r.id) }}">
+    <img src="{{ url_for('static', filename='results/' + r.result_image) }}" alt="">
+    <div class="mini-body">
+      <span class="tag {{ r.severity }}">{{ r.severity }}</span>
+      <span>{{ r.damage_type }}</span>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+
+<script>
+const input = document.getElementById('image'), preview = document.getElementById('preview'),
+      dropText = document.getElementById('dropText'), drop = document.getElementById('drop');
+function showPreview() {
+  const f = input.files[0]; if (!f) return;
+  preview.src = URL.createObjectURL(f); preview.hidden = false; dropText.hidden = true;
+}
+input.addEventListener('change', showPreview);
+['dragover','dragenter'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', ev => { input.files = ev.dataTransfer.files; showPreview(); });
+document.getElementById('uploadForm').addEventListener('submit', () => {
+  const b = document.getElementById('submitBtn'); b.textContent = 'Analyzing…'; b.disabled = true;
+});
+</script>
+{% endblock %}
